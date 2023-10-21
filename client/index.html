@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <link rel="stylesheet" href="./polling.css" />
+    <link rel="stylesheet" href="./index.css" />
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js">
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+    <div class="poll-wrapper" id="pollWrapper">
+        <button class="logout-btn" id="logout-btn" onclick="handleLogout(this)">LogOut</button>
+        <span id="user-name" style="position: absolute; left: 10px; top: 10px;font-size: large;color: brown;">
+
+        </span>
+        <button class="chat-btn" id="chatBtn" onclick="handleChat()">
+        </button>
+
+        <dialog class="selection-popover" id="pop-over">
+            <button
+                onclick="document.getElementById('pop-over').close();document.getElementById('pop-over').style ='hidden'">X</button>
+            <div class="chat-log" id="chatLog">
+
+            </div>
+            <input type="text" value="" id="message" onsubmit="(e)=>e.preventDefault()">
+            <span onclick="sendMessage()">
+                send
+            </span>
+        </dialog>
+    </div>
+
+    <script>
+
+        function showPollResluts(stream) {
+
+
+            const optionElements = document.getElementsByClassName('poll-container')[stream.question_id].getElementsByClassName('options-wrapper')
+
+            if (stream.pollData.users.includes(currentUser)) {
+                document.getElementsByClassName('vote-btn')[stream.question_id].disabled = true
+                document.getElementsByClassName('vote-btn')[stream.question_id].style.background = 'grey'
+                for (let i = 0; i < stream.questionData.options.length; i++) {
+                    const fraction = stream.pollData.options[i].vote / stream.pollData.options.length
+                    const percentile = fraction * 100
+                    // console.log(stream.questionData.options)
+                    optionElements[i].querySelectorAll('input[type="radio"]')[0].classList.add('hidden')
+                    optionElements[i].getElementsByClassName('progress-bar')[0].classList.remove('hidden')
+                    optionElements[i].getElementsByClassName('option-percentile')[0].style.width = `${percentile}%`
+                    optionElements[i].getElementsByClassName('votes-recieved')[0].innerHTML = stream.pollData.options[i].vote
+                }
+            }
+            // hide all radio buttons
+
+            // show progressbar
+
+        }
+
+
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'))
+        const baseurl = "http://localhost:3400"
+        const socket = io(baseurl);
+
+        socket.on("connection")
+
+        // when voting is ended
+        socket.on("votingended", (stream) => {
+            console.log(stream.pollData)
+            localStorage.setItem("pollResults", JSON.stringify(stream))
+            showPollResluts(stream)
+        })
+
+
+        // when a message is received 
+        socket.on("messageSignal", (stream) => {
+            console.log(stream)
+            localStorage.setItem("chatLog", JSON.stringify(stream))
+            chatUILoad(stream)
+
+            if (stream.at(-1).user !== currentUser) {
+
+                notificationSignal(1)
+            }
+
+        })
+
+
+        function notificationSignal(val) {
+            if (document.getElementById('notification')) {
+                document.getElementById('notification').remove()
+            }
+            document.getElementById('chatBtn').innerHTML += `<span id="notification">${val}</span>`
+        }
+        function chatUILoad(stream) {
+            document.getElementById("chatLog").innerHTML = ""
+            for (let i = 0; i < stream.length; i++) {
+                if (stream[i].user === currentUser) {
+                    console.log(stream[i].user)
+                    console.log(currentUser)
+                    const senderMsg = `  <div class="sender-msg">
+                                                @<span style="color: red;">${currentUser}</span>: <span style="padding-left: 10px;">${stream[i].message}</span>
+                                         </div>`
+                    document.getElementById("chatLog").innerHTML += senderMsg
+
+                } else {
+                    const receverMsg = ` <div class="receiver-msg">
+                                            @<span style="color: green;">${stream[i].user}</span>: <span style="padding-left: 10px;">${stream[i].message}</span>
+                                        </div>`
+                    document.getElementById("chatLog").innerHTML += receverMsg
+                }
+            }
+        }
+
+
+        // handle polling
+        function handleVote(pollName, question_id) {
+            // const currentVotedItem = button.previousElementSibling.value;
+            console.log(pollName)
+            console.log(document.querySelectorAll(`input[type="radio"][name="${pollName}"]:checked`))
+            question_id = parseInt(question_id)
+            const useSelectedOption = parseInt(document.querySelectorAll(`input[type="radio"][name="${pollName}"]:checked`)[0].value)
+            const userName = currentUser
+            const userPoll = { question_id, option_id: useSelectedOption, userName }
+            socket.emit('polling', userPoll);
+
+            setTimeout(() =>
+                showPollResluts(JSON.parse(localStorage.getItem("pollResults"))), 500
+            )
+        }
+
+
+        function createPollUI(data) {
+            let HTML = '';
+            for (let i = 0; i < data.length; i++) {
+                let optionsUI = ``
+                for (let j = 0; j < data[i].options.length; j++) {
+                    optionsUI += `<span class="options-wrapper">
+                                            <input type="radio" name='${data[i].title}' value="${j}"
+                                                id= '${data[i].options[j].option_text}' />
+                                            <label for='${data[i].options[j].option_text}' class="poll-option">
+                                                ${data[i].options[j].option_text}
+                                            </label>
+                                            <div class="progress-bar hidden">
+                                                <span class="option-percentile">
+                                                </span>
+                                            </div>
+                                            <span class="votes-recieved"></span>
+                                  </span>`
+                }
+                HTML += `
+             <div class="poll-container">
+                    <span>
+                        ${data[i].title}
+                    </span>
+                    <div class="options-container">
+                        ${optionsUI}
+                    </div>
+                    <input hidden value='${data[i]}' id="vote-data" />
+                    <button class="vote-btn" id='votebtn' onclick="handleVote('${data[i].title}',${i})">Vote</button>
+                </div>`
+
+
+            }
+
+            return HTML
+
+        }
+
+        function handleLogout() {
+            console.log("logout")
+            fetch(`${baseurl}/api/v3/logout`, {
+                method: "GET",
+                headers: { 'Content-Type': 'application/json', },
+                credentials: 'include'
+            })
+                .then(response => {
+                    console.log(response)
+                    if (!response) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Logout successful");
+                    console.log(data)
+                    localStorage.clear()
+                    window.location.reload()
+                })
+                .catch(error => {
+                    console.error("Error during logout:", error);
+                    // Handle the error, e.g., show an error message to the user
+                });
+        }
+
+
+
+        function getCookie(name) {
+            const cookies = document.cookie.split('; ');
+            console.log(document.cookie)
+            for (const cookie of cookies) {
+                const [cookieName, cookieValue] = cookie.split('=');
+                if (cookieName === name) {
+                    return decodeURIComponent(cookieValue);
+                }
+            }
+            return null; // Cookie not found
+        }
+
+        function fetchAllPollQuestions() {
+            return fetch(`${baseurl}/api/v3/getPolls`, {
+                method: "GET",
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                if (!response) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            }).then(data => {
+                return data
+            })
+        }
+
+        async function hanldeOnLoad() {
+            console.log(getCookie("isAuthenticated"))
+
+            if (!localStorage.getItem("authStatus")) {
+                return window.location.href = './login.html'
+            }
+            document.getElementById('user-name').innerHTML = currentUser
+
+            let { pollData } = await fetchAllPollQuestions()
+            let UI_TOBE_EMBEDDED = createPollUI(pollData)
+            // console.log(UI_TOBE_EMBEDDED)
+            document.getElementById('pollWrapper').innerHTML += UI_TOBE_EMBEDDED
+            const chatLog = (JSON.parse(localStorage.getItem("chatLog")))
+            console.log(chatLog)
+            if (chatLog)
+                chatUILoad(chatLog)
+
+        }
+
+
+        function sendMessage() {
+            const message = document.getElementById('message').value
+            document.getElementById('message').value = ''
+            socket.emit('message', { message, userName: currentUser })
+        }
+
+        const handleChat = () => {
+            console.log("chat")
+            if (document.getElementById('notification')) {
+                document.getElementById('notification').remove()
+            }
+            document.getElementById("pop-over").showModal()
+            document.getElementById("pop-over").style.display = 'flex'
+
+        }
+        window.onload = hanldeOnLoad()
+
+
+    </script>
+</body>
+
+</html>

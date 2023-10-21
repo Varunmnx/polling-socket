@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <link rel="stylesheet" type="text/css" href="./login.css" />
+    <link rel="stylesheet" type="text/css" href="./index.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="screen">
+            <div class="screen__content">
+                <form class="login" id="loginform">
+                    <div class="login__field">
+                        <i class="login__icon fas fa-user"></i>
+                        <input type="text" class="login__input" id="username" placeholder="User name / Email">
+                    </div>
+                    <div class="login__field">
+                        <i class="login__icon fas fa-lock"></i>
+                        <input type="password" class="login__input" id="password" placeholder="Password">
+                    </div>
+                    <button class="button login__submit">
+                        <span class="button__text">Log In Now</span>
+                        <i class="button__icon fas fa-chevron-right"></i>
+                    </button>
+                </form>
+                <div class="social-login">
+                    <h3>log in via</h3>
+                    <div class="social-icons">
+                        <a href="#" class="social-login__icon fab fa-instagram"></a>
+                        <a href="#" class="social-login__icon fab fa-facebook"></a>
+                        <a href="#" class="social-login__icon fab fa-twitter"></a>
+                    </div>
+                </div>
+            </div>
+            <div class="screen__background">
+                <span class="screen__background__shape screen__background__shape4"></span>
+                <span class="screen__background__shape screen__background__shape3"></span>
+                <span class="screen__background__shape screen__background__shape2"></span>
+                <span class="screen__background__shape screen__background__shape1"></span>
+            </div>
+        </div>
+    </div>
+    <script>
+        const baseurl = 'http://localhost:3400'
+        function handleSubmit(e) {
+            e.preventDefault()
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            fetch(`${baseurl}/api/v3/login`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            }).then(response => {
+                console.log(response)
+                if (response.ok) {
+                    return response.json(); // Parse the JSON response
+                } else {
+
+                    throw new Error('Login failed'); // Handle the error
+                }
+            }).then(data => {
+                console.log(data);
+                if (data.user) {
+                    localStorage.setItem("currentUser", JSON.stringify(data.user));
+                    localStorage.setItem("authStatus", true)
+                    window.location.href = './index.html';
+                } else {
+                    localStorage.clear()
+                }
+
+                // Redirect to another page, e.g., '/index.html'
+            }).catch(error => {
+                window.alert("no user exist with this name")
+                console.error(error);
+                // Handle the login error, e.g., show an error message to the user
+            });
+
+
+        }
+
+
+        document.getElementById("loginform").addEventListener('submit', handleSubmit)
+    </script>
+</body>

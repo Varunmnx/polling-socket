@@ -1,0 +1,241 @@
+.poll-wrapper {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  gap: 20px;
+  padding-top: 100px;
+  background-color: rgb(232, 232, 232);
+}
+.poll-container {
+  width: 400px;
+  height: 200px;
+  background-color: #f0f2f4;
+  font-size: 18px;
+  font-weight: 600;
+  color: black;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  position: relative;
+  gap: 10px;
+}
+
+.poll-container > span {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.poll-container > * {
+  user-select: none;
+}
+
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.options-container > span {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.options-container > span > label {
+  width: 80px;
+}
+
+.vote-btn {
+  padding: 10px;
+  border: none;
+  outline: none;
+  width: 80px;
+  background-color: rgb(19, 103, 140);
+  color: white;
+  border-radius: 5px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  cursor: pointer;
+}
+.vote-btn:hover {
+  background-color: rgb(24, 145, 197);
+}
+
+.poll-option {
+  font-weight: 400 !important;
+}
+
+.logout-btn {
+  width: 80px;
+  height: 40px;
+  background-color: rgb(187, 50, 50);
+  margin: 10px;
+  color: white;
+  position: absolute;
+  right: 10px;
+  top: 20px;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.logout-btn:hover {
+  cursor: pointer;
+  background-color: rgb(221, 59, 59);
+}
+
+.hidden {
+  visibility: hidden !important;
+}
+.progress-bar {
+  height: 20px;
+  width: 30%;
+  border-radius: 10px;
+  background-color: rgb(152, 152, 152);
+}
+.progress-bar > span {
+  height: 100%;
+  width: 0%;
+  transition: all 0.3s;
+  background: yellow;
+  border-radius: 0px 5px 5px 0px;
+  display: block;
+}
+
+.chat-btn {
+  outline: hidden;
+  border: hidden;
+  height: 80px;
+  width: 80px;
+  background-color: rgb(63, 187, 63);
+  background-image: url("http://cdn.onlinewebfonts.com/svg/download_54456.png");
+  background-size: cover;
+  color: white;
+  border-radius: 50%;
+  position: fixed;
+  right: 20px;
+  bottom: 50px;
+}
+
+.chat-btn:hover {
+  cursor: pointer;
+  transform: scale(0.9);
+}
+.chat-btn > span {
+  height: 20px;
+  width: 20px;
+  margin-bottom: 50px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: white;
+  background-color: red;
+}
+
+.selection-popover {
+  border: none;
+  display: hidden;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 20px;
+  transition: all 0.2s;
+  opacity: 0;
+  pointer-events: none;
+  width: 500px;
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  margin: auto;
+  position: relative;
+  align-items: baseline;
+  justify-content: flex-end;
+  padding-bottom: 67px;
+}
+
+.selection-popover[open] {
+  opacity: 1;
+  pointer-events: all !important;
+}
+
+.selection-popover::backdrop {
+  display: grid;
+  place-items: center;
+}
+
+.selection-popover > button {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background-color: red;
+  border: none;
+}
+
+.selection-popover > input {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 80%;
+  height: 30px;
+}
+
+.selection-popover > span {
+  width: 50px;
+  height: 33px;
+  position: absolute;
+  right: 30px;
+  bottom: 13px;
+  color: white;
+  display: grid;
+  place-items: center;
+
+  background-color: rgb(0, 82, 51);
+}
+
+.receiver-msg {
+  width: 60%;
+  height: 30px;
+  color: black;
+  background-color: rgb(178, 182, 182);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  margin-top: 10px;
+}
+
+.sender-msg {
+  width: 60%;
+  height: 30px;
+  color: black;
+  background-color: rgb(178, 182, 182);
+  border-radius: 10px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  margin-top: 10px;
+}
+.chat-log {
+  width: 100%;
+  /* height: 100%;
+  max-height: 200px; */
+  /* display: flex; */
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+@media (max-width: 480px) {
+  .poll-container {
+    width: 80%;
+    font-size: 12px;
+  }
+}
